@@ -47,7 +47,7 @@ def download_media(url, quality, platform, media_type):
         return str(e)
 
 # Streamlit UI
-st.title("\ud83d\udcbd Video & Audio Downloader")
+st.title("📥 Video & Audio Downloader")
 st.write("Paste the video URL below and click 'Download'")
 
 platform = st.selectbox("Select Platform", ["YouTube Video", "Instagram Reels", "Facebook Reels"])
