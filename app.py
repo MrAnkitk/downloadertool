@@ -27,8 +27,8 @@ def download_media(url, quality, platform, media_type):
         'outtmpl': 'downloads/%(title)s.%(ext)s',
         'noplaylist': True,  
         'postprocessors': [{
-            'key': 'FFmpegVideoRemuxer',  # Fix: 'FFmpegVideoConvertor' -> 'FFmpegVideoRemuxer'
-            'format': 'mp4',  # Fix: 'preferredformat' -> 'format'
+            'key': 'FFmpegVideoRemuxer',
+            'preferredformat': 'mp4',  # Fix applied here
         }],
         'retries': 10,  
         'fragment_retries': 10,
@@ -67,7 +67,7 @@ url = st.text_input("Enter Video URL")
 
 if st.button("Download"):
     if st.session_state.download_completed:
-        st.success("🎉 Download already completed! Showing popup...")
+        st.success("🎉 Download already completed! Showing popup...")  
     else:
         if url:
             with st.spinner("Downloading... Please wait."):
