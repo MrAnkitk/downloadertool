@@ -5,46 +5,31 @@ import os
 # Ensure downloads directory exists
 os.makedirs("downloads", exist_ok=True)
 
-def download_media(url, quality, platform, media_type):
-    format_map = {
-        "1080p": "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
-        "720p": "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
-        "480p": "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
-        "360p": "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
-        "240p": "bestvideo[height<=240][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
-        "144p": "bestvideo[height<=144][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
-        "Audio Only": "bestaudio[ext=m4a]/bestaudio"
+def download_media(url, platform):
+    options = {
+        'format': 'best',  # Download the best available format (video+audio merged)
+        'outtmpl': 'downloads/%(title)s.%(ext)s',
+        'noplaylist': True,  # Ensure only a single reel/video is downloaded
     }
 
-    extra_args = {}
     if platform == "Instagram Reels":
-        extra_args = {
+        options.update({
             'referer': 'https://www.instagram.com/',
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-            'extractor_args': {'instagram': ''},
-            'merge_output_format': None  # Disable merging
-        }
-
-    options = {
-        'format': format_map.get(quality, 'best[ext=mp4]'),
-        'outtmpl': 'downloads/%(title)s.%(ext)s',
-        'postprocessors': [],  # Disable ffmpeg usage
-        'verbose': True,  # Debug mode
-        **extra_args
-    }
+        })
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
-            
+
             if os.path.exists(file_path):
                 return file_path
             else:
                 return None
     except Exception as e:
-        print("⛔ ERROR:", str(e))  # Print error in terminal
         return str(e)
+
 
 st.title("📥 Video & Audio Downloader")
 st.write("Paste the video URL below and click 'Download'")
