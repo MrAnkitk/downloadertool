@@ -10,6 +10,10 @@ os.makedirs("downloads", exist_ok=True)
 if "download_completed" not in st.session_state:
     st.session_state.download_completed = False
 
+def sanitize_filename(filename):
+    """Remove special characters to ensure valid filenames."""
+    return "".join(c for c in filename if c.isalnum() or c in (" ", ".", "_")).rstrip()
+
 def download_media(url, quality, platform, media_type):
     format_map = {
         "1080p": "bestvideo[height<=1080]+bestaudio/best",
@@ -23,14 +27,16 @@ def download_media(url, quality, platform, media_type):
     
     options = {
         'format': format_map.get(quality, 'best'),
-        'outtmpl': 'downloads/%(title)s.%(ext)s',
+        'outtmpl': 'downloads/%(id)s.%(ext)s',  # Use ID instead of title
+        'noplaylist': True
     }
     
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
-            return file_path
+            file_path = sanitize_filename(file_path)  # Clean file name
+            return file_path if os.path.exists(file_path) else None
     except Exception as e:
         return str(e)
 
@@ -47,33 +53,27 @@ quality = st.selectbox("Select Quality", quality_options)
 url = st.text_input("Enter Video URL")
 
 if st.button("Download"):
-    if st.session_state.download_completed:
-        st.success("🎉 Download already completed! Showing popup...")
+    if url:
+        with st.spinner("Downloading... Please wait."):
+            file_path = download_media(url, quality, platform, media_type)
+            if file_path and os.path.exists(file_path):
+                with open(file_path, "rb") as file:
+                    st.download_button(label="Download", data=file, file_name=os.path.basename(file_path))
+                
+                st.success("✅ Download complete! Click above to save the file.")
+                st.session_state.download_completed = True  # Mark as completed
+                
+                time.sleep(2)
+                st.success("🎉 Download Successful!")
+            else:
+                st.error("⚠️ Error: File not found. Please try again.")
     else:
-        if url:
-            with st.spinner("Downloading... Please wait."):
-                file_path = download_media(url, quality, platform, media_type)
-                if os.path.exists(file_path):
-                    with open(file_path, "rb") as file:
-                        st.download_button(label="Download", data=file, file_name=os.path.basename(file_path))
-                    
-                    st.success("Download complete! Click above to save the file.")
+        st.warning("⚠️ Please enter a valid URL.")
 
-                    # Mark download as completed
-                    st.session_state.download_completed = True
-                    
-                    # Wait for a moment before showing popup
-                    time.sleep(2)
-                    
-                    st.success("🎉 Download Successful! Showing popup...")
-        else:
-            st.warning("Please enter a valid URL")
-
-# If download completed, show popup
 if st.session_state.download_completed:
     with st.expander("🎉 Download Successful! Click to Support 🎉", expanded=True):
         st.markdown("## 🤑 *Yaar! Ek Cup Chai Toh Banta Hai!* ☕")
-        st.write("Yahhan, Dabate Hi Download Hota Hai")
+        st.write("Yahaan, Dabate Hi Download Hota Hai")
 
         col1, col2 = st.columns(2)
         with col1:
@@ -87,11 +87,10 @@ if st.session_state.download_completed:
 
 st.markdown("---")
 st.header("💖 Support the Developer")
-
 st.markdown(
     "Toh doston, chinta mat karo, **life ka UPI PIN strong rakho, relationships ka OTP safe rakho, aur success ka QR Code scan karne ki koshish karte raho!** 😆🔥\n\n"
 )
-st.image("qrcode.jpg", caption="Scan to Donate via UPI", width=150)
+st.image("qrcode.jpg", caption="Scan to Donate via UPI", width=100)
 st.write("[Donate via UPI (Click to Pay)](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
 
 st.write("Developed by Ankit Shrivastava")
