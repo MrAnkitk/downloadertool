@@ -25,30 +25,32 @@ def download_media(url, quality, platform, media_type):
     options = {
         'format': format_map.get(quality, 'best'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
-        'noplaylist': True,  
+        'noplaylist': True,
         'postprocessors': [{
-            'key': 'FFmpegVideoRemuxer',  # ✅ FIX: सही key दी गई है
-            'preferredformat': 'mp4',  # ✅ FIX: 'preferredformat' यूज़ किया गया है
+            'key': 'FFmpegVideoConvertor',  # ✅ Fix: सही processor use किया
+            'preferedformat': 'mp4' if media_type == "Video" else "mp3",  # ✅ Video ke liye MP4, Audio ke liye MP3
+            'preferredcodec': 'mp4' if media_type == "Video" else "mp3"  # ✅ Fix: 'preferredformat' ki jagah 'preferredcodec' use kiya
         }],
-        'retries': 10,  
+        'retries': 10,
         'fragment_retries': 10,
         'socket_timeout': 30,
-        'nopart': False,  
+        'nopart': False,
     }
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
-            
-            if not file_path or not os.path.exists(file_path):
-                file_path = f"downloads/{info['title']}.mp4"
 
-            st.write(f"Generated file path: {file_path}")  
+            if not file_path or not os.path.exists(file_path):
+                file_extension = "mp4" if media_type == "Video" else "mp3"
+                file_path = f"downloads/{info['title']}.{file_extension}"
+
+            st.write(f"Generated file path: {file_path}")
             return file_path if os.path.exists(file_path) else None
 
     except Exception as e:
-        st.error(f"Error: {e}")  
+        st.error(f"Error: {e}")
         return None
 
 # Streamlit UI
