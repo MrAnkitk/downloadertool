@@ -1,7 +1,6 @@
 import streamlit as st
 import yt_dlp
 import os
-import time
 
 # Ensure downloads directory exists
 os.makedirs("downloads", exist_ok=True)
@@ -26,7 +25,15 @@ def download_media(url, quality, platform, media_type):
     options = {
         'format': format_map.get(quality, 'best'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
+        'merge_output_format': 'mp4' if media_type == "Video" else 'mp3'
     }
+    
+    # Additional options for Instagram Reels
+    if platform == "Instagram Reels":
+        options['postprocessors'] = [{
+            'key': 'FFmpegVideoConvertor',
+            'preferedformat': 'mp4',
+        }]
     
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
@@ -40,7 +47,7 @@ def download_media(url, quality, platform, media_type):
 st.title("📥 Video & Audio Downloader")
 st.write("Paste the video URL below and click 'Download'")
 
-platform = st.selectbox("Select Platform", ["YouTube Video", "Instagram Reels"])
+platform = st.selectbox("Select Platform", ["YouTube Video", "YouTube Shorts", "Instagram Reels"])
 media_type = st.radio("Select Media Type", ["Video", "Audio Only"])
 quality_options = ["1080p", "720p", "480p", "360p", "240p", "144p"]
 if media_type == "Audio Only":
@@ -72,29 +79,8 @@ if st.session_state.download_completed and st.session_state.download_path:
             mime="application/octet-stream"
         )
 
-# If download completed, show popup
-if st.session_state.download_completed:
-    with st.expander("🎉 Download Successful! Click to Support 🎉", expanded=True):
-        st.markdown("## 🤑 *Yaar! Ek Cup Chai Toh Banta Hai!* ☕")
-        st.write("Yahhan, Dabate Hi Download Hota Hai")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("✅ Haan Bhai! Support Kar Raha Hoon!"):
-                st.markdown("[**Donate via UPI (Click to Pay)**](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
-                st.success("❤️ Thank you for your support! ❤️")
-
-        with col2:
-            if st.button("❌ Nahi Bhai, Abhi Paisa Nahi Hai"):
-                st.warning("Koi nahi! Aage kabhi support kar dena! 😊")
-
 st.markdown("---")
 st.header("💖 Support the Developer")
-
-st.markdown(
-    "Toh doston, chinta mat karo, **life ka UPI PIN strong rakho, relationships ka OTP safe rakho, aur success ka QR Code scan karne ki koshish karte raho!** 😆🔥\n\n"
-)
 st.image("qrcode.jpg", caption="Scan to Donate via UPI", width=100)
 st.write("[Donate via UPI (Click to Pay)](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
-
 st.write("Developed by Ankit Shrivastava")
