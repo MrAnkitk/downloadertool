@@ -26,6 +26,7 @@ def download_media(url, quality, platform, media_type):
     options = {
         'format': format_map.get(quality, 'best'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
+        'noplaylist': True,
     }
     
     try:
@@ -33,7 +34,12 @@ def download_media(url, quality, platform, media_type):
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
             absolute_path = os.path.abspath(file_path)
-            return absolute_path
+            
+            # Check if file exists after download
+            if os.path.exists(absolute_path):
+                return absolute_path
+            else:
+                return None
     except Exception as e:
         return None
 
@@ -53,7 +59,8 @@ if st.button("Download"):
     if url:
         with st.spinner("Downloading... Please wait."):
             file_path = download_media(url, quality, platform, media_type)
-            if file_path and os.path.exists(file_path):
+            
+            if file_path:
                 st.session_state.download_path = file_path
                 st.session_state.download_completed = True
                 st.success("✅ Download Successful! Click below to save the file.")
