@@ -13,31 +13,30 @@ def download_media(url, quality, platform, media_type):
         "360p": "bestvideo[height<=360]+bestaudio/best",
         "240p": "bestvideo[height<=240]+bestaudio/best",
         "144p": "bestvideo[height<=144]+bestaudio/best",
-        "Audio Only": "bestaudio/best" # Audio Only
+        "Audio Only": "bestaudio/best"  # Audio Only
     }
     
     options = {
         'format': format_map.get(quality, 'best'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
     }
-    
+
+    # Instagram authentication cookies add karein (Agar Instagram select kiya gaya hai)
+    if platform == "Instagram Reels":
+        options["cookiefile"] = "cookies.txt"  # Ensure cookies.txt is available
+
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
-            return file_path
-    except Exception as e:
-            return str(e)
             
-            # Check if file exists
-            if os.path.exists(absolute_path):
-                return absolute_path
+            # File check
+            if os.path.exists(file_path):
+                return file_path
             else:
-                st.error("⚠️ Error: File was not saved correctly. Try again!")
                 return None
     except Exception as e:
-        st.error(f"⚠️ Download Failed: {str(e)}")
-        return None
+        return str(e)
 
 st.title("📥 Video & Audio Downloader")
 st.write("Paste the video URL below and click 'Download'")
@@ -55,8 +54,8 @@ url = st.text_input("Enter Video URL")
 if st.button("Download"):
     if url:
         with st.spinner("Downloading... Please wait."):
-            file_path = download_media(url, quality)
-            if file_path:
+            file_path = download_media(url, quality, platform, media_type)
+            if file_path and os.path.exists(file_path):
                 with open(file_path, "rb") as file:
                     st.download_button(
                         label="📥 Save Media",
@@ -70,27 +69,9 @@ if st.button("Download"):
     else:
         st.warning("Please enter a valid URL.")
 
-# If download completed, show popup 
-if "download_completed" in st.session_state and st.session_state.download_completed:
-    with st.expander("🎉 Download Successful! Click to Support 🎉", expanded=True):
-        st.markdown("## 🤑 *Yaar! Ek Cup Chai Toh Banta Hai!* ☕")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("✅ Haan Bhai! Support Kar Raha Hoon!"):
-                st.markdown("[**Donate via UPI (Click to Pay)**](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
-                st.success("❤️ Thank you for your support! ❤️")
-
-        with col2:
-            if st.button("❌ Nahi Bhai, Abhi Paisa Nahi Hai"):
-                st.warning("Koi nahi! Aage kabhi support kar dena! 😊")
-
 st.markdown("---")
 st.header("💖 Support the Developer")
 
-st.markdown(
-    "Toh doston, chinta mat karo, **life ka UPI PIN strong rakho, relationships ka OTP safe rakho, aur success ka QR Code scan karne ki koshish karte raho!** 😆🔥\n\n"
-)
 st.image("qrcode.jpg", caption="Scan to Donate via UPI", width=100)
 st.write("[Donate via UPI (Click to Pay)](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
 
