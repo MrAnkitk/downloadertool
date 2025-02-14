@@ -20,35 +20,37 @@ def download_media(url, quality, platform, media_type):
         "144p": "bestvideo[height<=144]+bestaudio/best",
         "Audio Only": "bestaudio/best"
     }
-    
-      options = {
+
+    options = {
         'format': format_map.get(quality, 'bestvideo+bestaudio/best'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
         'merge_output_format': 'mp4',
         'noplaylist': True,  # Sirf ek hi video download hogi, playlist nahi
         'postprocessors': [{
             'key': 'FFmpegVideoConvertor',
-            'preferedformat': 'mp4',
+            'preferredformat': 'mp4',  # Fix: preferedformat -> preferredformat
         }],
         'retries': 10,  # Agar download fail ho toh 10 baar retry karega
         'fragment_retries': 10,
         'socket_timeout': 30,
         'nopart': False,  # Agar ek part fail ho toh poora video fail na ho
     }
-    
+
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
-            return file_path
+            return file_path if os.path.exists(file_path) else None
     except Exception as e:
         return str(e)
 
+# Streamlit UI
 st.title("📥 Video & Audio Downloader")
 st.write("Paste the video URL below and click 'Download'")
 
-platform = st.selectbox("Select Platform", ["YouTube Video", "Instagram Reels","Facebook Reels"])
+platform = st.selectbox("Select Platform", ["YouTube Video", "Instagram Reels", "Facebook Reels"])
 media_type = st.radio("Select Media Type", ["Video", "Audio Only"])
+
 quality_options = ["1080p", "720p", "480p", "360p", "240p", "144p"]
 if media_type == "Audio Only":
     quality_options = ["Audio Only"]
@@ -63,19 +65,21 @@ if st.button("Download"):
         if url:
             with st.spinner("Downloading... Please wait."):
                 file_path = download_media(url, quality, platform, media_type)
-                if os.path.exists(file_path):
+                if file_path and os.path.exists(file_path):
                     with open(file_path, "rb") as file:
                         st.download_button(label="Save Media", data=file, file_name=os.path.basename(file_path))
-                    
+
                     st.success("Download complete! Click above to save the file.")
 
                     # Mark download as completed
                     st.session_state.download_completed = True
-                    
+
                     # Wait for a moment before showing popup
                     time.sleep(2)
                     
                     st.success("🎉 Download Successful! Showing popup...")
+                else:
+                    st.error("Download failed. Please check the URL or try again.")
         else:
             st.warning("Please enter a valid URL")
 
