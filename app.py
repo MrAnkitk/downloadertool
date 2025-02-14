@@ -1,11 +1,13 @@
 import streamlit as st
 import yt_dlp
 import os
+import instaloader
 
 # Ensure downloads directory exists
 os.makedirs("downloads", exist_ok=True)
 
-def download_media(url, quality, platform):
+# Function to download YouTube/Facebook videos using yt-dlp
+def download_yt_fb(url, quality):
     format_map = {
         "1080p": "bestvideo[height<=1080]+bestaudio/best",
         "720p": "bestvideo[height<=720]+bestaudio/best",
@@ -19,24 +21,14 @@ def download_media(url, quality, platform):
     options = {
         'format': format_map.get(quality, 'best'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
-        'nocheckcertificate': True,
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-            'Accept-Language': 'en-US,en;q=0.9'
-        }
     }
     
-    # Instagram reels ke liye login cookies ka support
-    if platform == "Instagram Reels":
-        options['cookies'] = 'cookies.txt'  # Instagram ke login session ka cookies file
-
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
             absolute_path = os.path.abspath(file_path)
             
-            # Check if file exists
             if os.path.exists(absolute_path):
                 return absolute_path
             else:
@@ -44,6 +36,24 @@ def download_media(url, quality, platform):
                 return None
     except Exception as e:
         st.error(f"⚠️ Download Failed: {str(e)}")
+        return None
+
+# Function to download Instagram Reels using instaloader
+def download_instagram_reel(url):
+    try:
+        L = instaloader.Instaloader(dirname_pattern="downloads")
+        post_shortcode = url.split("/")[-2]  # Extract shortcode from URL
+        L.download_post(instaloader.Post.from_shortcode(L.context, post_shortcode), target="downloads")
+        
+        # Find the downloaded file
+        for file in os.listdir("downloads"):
+            if file.endswith(".mp4"):
+                return os.path.abspath(os.path.join("downloads", file))
+        
+        st.error("⚠️ Error: File was not saved correctly. Try again!")
+        return None
+    except Exception as e:
+        st.error(f"⚠️ Instagram Download Failed: {str(e)}")
         return None
 
 st.title("📥 Video & Audio Downloader")
@@ -62,7 +72,13 @@ url = st.text_input("Enter Video URL")
 if st.button("Download"):
     if url:
         with st.spinner("Downloading... Please wait."):
-            file_path = download_media(url, quality, platform)
+            if platform in ["YouTube Video", "Facebook Reels"]:
+                file_path = download_yt_fb(url, quality)
+            elif platform == "Instagram Reels":
+                file_path = download_instagram_reel(url)
+            else:
+                file_path = None
+
             if file_path:
                 with open(file_path, "rb") as file:
                     st.download_button(
@@ -76,10 +92,3 @@ if st.button("Download"):
                 st.error("⚠️ Download failed. Please try again!")
     else:
         st.warning("Please enter a valid URL.")
-
-st.markdown("---")
-st.header("💖 Support the Developer")
-st.image("qrcode.jpg", caption="Scan to Donate via UPI", width=100)
-st.write("[Donate via UPI (Click to Pay)](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
-
-st.write("Developed by Ankit Shrivastava")
