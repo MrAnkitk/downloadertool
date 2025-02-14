@@ -37,7 +37,7 @@ def download_media(url, quality, platform, media_type):
 st.title("📥 Video & Audio Downloader")
 st.write("Paste the video URL below and click 'Download'")
 
-platform = st.selectbox("Select Platform", ["YouTube Video", "Instagram Reels"])
+platform = st.selectbox("Select Platform", ["YouTube Video", "Instagram Reels","Facebook Reels"])
 media_type = st.radio("Select Media Type", ["Video", "Audio Only"])
 quality_options = ["1080p", "720p", "480p", "360p", "240p", "144p"]
 if media_type == "Audio Only":
@@ -55,7 +55,7 @@ if st.button("Download"):
                 file_path = download_media(url, quality, platform, media_type)
                 if os.path.exists(file_path):
                     with open(file_path, "rb") as file:
-                        st.download_button(label="Download", data=file, file_name=os.path.basename(file_path))
+                        st.download_button(label="Save Media", data=file, file_name=os.path.basename(file_path))
                     
                     st.success("Download complete! Click above to save the file.")
 
