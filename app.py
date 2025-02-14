@@ -7,24 +7,29 @@ os.makedirs("downloads", exist_ok=True)
 
 def download_media(url, quality, platform, media_type):
     format_map = {
-        "1080p": "bestvideo[height<=1080]+bestaudio/best",
-        "720p": "bestvideo[height<=720]+bestaudio/best",
-        "480p": "bestvideo[height<=480]+bestaudio/best",
-        "360p": "bestvideo[height<=360]+bestaudio/best",
-        "240p": "bestvideo[height<=240]+bestaudio/best",
-        "144p": "bestvideo[height<=144]+bestaudio/best",
-        "Audio Only": "bestaudio/best"
+        "1080p": "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
+        "720p": "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
+        "480p": "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
+        "360p": "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
+        "240p": "bestvideo[height<=240][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
+        "144p": "bestvideo[height<=144][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
+        "Audio Only": "bestaudio[ext=m4a]/bestaudio"
     }
-    
-    # Instagram ke liye best available format select karein
+
+    extra_args = {}
     if platform == "Instagram Reels":
-        format_choice = "best"  # Automatically selects the best single file format
-    else:
-        format_choice = format_map.get(quality, 'best')
+        extra_args = {
+            'referer': 'https://www.instagram.com/',
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            'extractor_args': {'instagram': ''},
+            'merge_output_format': None  # Disable merging
+        }
 
     options = {
-        'format': format_choice,
+        'format': format_map.get(quality, 'best[ext=mp4]'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
+        'postprocessors': [],  # Disable ffmpeg usage
+        **extra_args
     }
 
     try:
