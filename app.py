@@ -67,3 +67,30 @@ if st.button("Download"):
                 st.error("⚠️ Download failed. Please try again!")
     else:
         st.warning("Please enter a valid URL.")
+
+# If download completed, show popup 
+if "download_completed" in st.session_state and st.session_state.download_completed:
+    with st.expander("🎉 Download Successful! Click to Support 🎉", expanded=True):
+        st.markdown("## 🤑 *Yaar! Ek Cup Chai Toh Banta Hai!* ☕")
+        st.write("Yahhan, Dabate Hi Download Hota Hai")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("✅ Haan Bhai! Support Kar Raha Hoon!"):
+                st.markdown("[**Donate via UPI (Click to Pay)**](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
+                st.success("❤️ Thank you for your support! ❤️")
+
+        with col2:
+            if st.button("❌ Nahi Bhai, Abhi Paisa Nahi Hai"):
+                st.warning("Koi nahi! Aage kabhi support kar dena! 😊")
+
+st.markdown("---")
+st.header("💖 Support the Developer")
+
+st.markdown(
+    "Toh doston, chinta mat karo, **life ka UPI PIN strong rakho, relationships ka OTP safe rakho, aur success ka QR Code scan karne ki koshish karte raho!** 😆🔥\n\n"
+)
+st.image("qrcode.jpg", caption="Scan to Donate via UPI", width=100)
+st.write("[Donate via UPI (Click to Pay)](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
+
+st.write("Developed by Ankit Shrivastava")
