@@ -5,31 +5,39 @@ import os
 # Ensure downloads directory exists
 os.makedirs("downloads", exist_ok=True)
 
-def download_media(url, platform):
-    options = {
-        'format': 'best',  # Download the best available format (video+audio merged)
-        'outtmpl': 'downloads/%(title)s.%(ext)s',
-        'noplaylist': True,  # Ensure only a single reel/video is downloaded
+def download_media(url, quality, platform, media_type):
+    format_map = {
+        "1080p": "bestvideo[height<=1080]+bestaudio/best",
+        "720p": "bestvideo[height<=720]+bestaudio/best",
+        "480p": "bestvideo[height<=480]+bestaudio/best",
+        "360p": "bestvideo[height<=360]+bestaudio/best",
+        "240p": "bestvideo[height<=240]+bestaudio/best",
+        "144p": "bestvideo[height<=144]+bestaudio/best",
+        "Audio Only": "bestaudio/best"
     }
-
+    
+    # Instagram ke liye best available format select karein
     if platform == "Instagram Reels":
-        options.update({
-            'referer': 'https://www.instagram.com/',
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        })
+        format_choice = "best"  # Automatically selects the best single file format
+    else:
+        format_choice = format_map.get(quality, 'best')
+
+    options = {
+        'format': format_choice,
+        'outtmpl': 'downloads/%(title)s.%(ext)s',
+    }
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
-
+            
             if os.path.exists(file_path):
                 return file_path
             else:
                 return None
     except Exception as e:
         return str(e)
-
 
 st.title("📥 Video & Audio Downloader")
 st.write("Paste the video URL below and click 'Download'")
