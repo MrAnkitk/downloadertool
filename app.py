@@ -16,21 +16,25 @@ def download_media(url, quality, platform, media_type):
         "Audio Only": "bestaudio/best"  # Audio Only
     }
     
+    extra_args = {}
+    if platform == "Instagram Reels":
+        extra_args = {
+            'referer': 'https://www.instagram.com/',
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            'extractor_args': {'instagram': ''}
+        }
+
     options = {
         'format': format_map.get(quality, 'best'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
+        **extra_args
     }
-
-    # Instagram authentication cookies add karein (Agar Instagram select kiya gaya hai)
-    if platform == "Instagram Reels":
-        options["cookiefile"] = "cookies.txt"  # Ensure cookies.txt is available
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
             
-            # File check
             if os.path.exists(file_path):
                 return file_path
             else:
