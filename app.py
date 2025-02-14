@@ -1,45 +1,122 @@
+# -*- coding: utf-8 -*-
+import streamlit as st
 import yt_dlp
+import os
+import time
 
-def download_video(url, quality="best", media_type="video"):
+# Ensure downloads directory exists
+os.makedirs("downloads", exist_ok=True)
+
+# Session state to track downloads
+if "download_completed" not in st.session_state:
+    st.session_state.download_completed = False
+
+def download_media(url, quality, platform, media_type):
     format_map = {
         "1080p": "bestvideo[height<=1080]+bestaudio/best",
         "720p": "bestvideo[height<=720]+bestaudio/best",
         "480p": "bestvideo[height<=480]+bestaudio/best",
         "360p": "bestvideo[height<=360]+bestaudio/best",
+        "240p": "bestvideo[height<=240]+bestaudio/best",
+        "144p": "bestvideo[height<=144]+bestaudio/best",
         "Audio Only": "bestaudio/best"
     }
 
+    # ✅ Fix: Corrected postprocessor usage
     postprocessors = []
-    
-    if media_type == "audio":
+    if media_type == "Audio Only":
         postprocessors.append({
             'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
+            'preferredcodec': 'mp3',  # ✅ Corrected audio conversion
             'preferredquality': '192'
         })
     else:
         postprocessors.append({
             'key': 'FFmpegVideoRemuxer',
-            'preferedformat': 'mp4'  # Corrected spelling mistake
+            'preferedformat': 'mp4'  # ✅ Fixed spelling mistake ('preferredformat' → 'preferedformat')
         })
 
     options = {
         'format': format_map.get(quality, 'best'),
-        'outtmpl': '%(title)s.%(ext)s',
+        'outtmpl': 'downloads/%(title)s.%(ext)s',
         'noplaylist': True,
-        'postprocessors': postprocessors
+        'postprocessors': postprocessors,
+        'retries': 10,
+        'fragment_retries': 10,
+        'socket_timeout': 30,
+        'nopart': False,
     }
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
-            ydl.download([url])
-        print("✅ Download successful!")
+            info = ydl.extract_info(url, download=True)
+            file_path = ydl.prepare_filename(info)
+
+            # ✅ Set correct file extension
+            if media_type == "Audio Only":
+                file_path = file_path.rsplit('.', 1)[0] + ".mp3"
+            else:
+                file_path = file_path.rsplit('.', 1)[0] + ".mp4"
+
+            st.write(f"Generated file path: {file_path}")
+            return file_path if os.path.exists(file_path) else None
+
     except Exception as e:
-        print(f"❌ Error: {e}")
+        st.error(f"Error: {e}")
+        return None
 
-# Example usage
-video_url = input("Enter video URL: ")
-media_choice = input("Download as (video/audio): ").strip().lower()
-quality_choice = input("Choose quality (1080p, 720p, 480p, 360p, Audio Only): ").strip()
+# Streamlit UI
+st.title("📥 Video & Audio Downloader")
+st.write("Paste the video URL below and click 'Download'")
 
-download_video(video_url, quality_choice, media_choice)
+platform = st.selectbox("Select Platform", ["YouTube Video", "Instagram Reels", "Facebook Reels"])
+media_type = st.radio("Select Media Type", ["Video", "Audio Only"])
+
+quality_options = ["1080p", "720p", "480p", "360p", "240p", "144p"]
+if media_type == "Audio Only":
+    quality_options = ["Audio Only"]
+quality = st.selectbox("Select Quality", quality_options)
+
+url = st.text_input("Enter Video URL")
+
+if st.button("Download"):
+    if st.session_state.download_completed:
+        st.success("🎉 Download already completed! Showing popup...")
+    else:
+        if url:
+            with st.spinner("Downloading... Please wait."):
+                file_path = download_media(url, quality, platform, media_type)
+                if file_path and os.path.exists(file_path):
+                    with open(file_path, "rb") as file:
+                        st.download_button(label="Save Media", data=file, file_name=os.path.basename(file_path))
+
+                    st.success("Download complete! Click above to save the file.")
+                    st.session_state.download_completed = True
+                    time.sleep(2)
+                    st.success("🎉 Download Successful! Showing popup...")
+                else:
+                    st.error("Download failed. Please check the URL or try again.")
+        else:
+            st.warning("Please enter a valid URL")
+
+if st.session_state.download_completed:
+    with st.expander("🎉 Download Successful! Click to Support 🎉", expanded=True):
+        st.markdown("## 🤑 *Yaar! Ek Cup Chai Toh Banta Hai!* ☕")
+        st.write("Yahhan, Dabate Hi Download Hota Hai")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("✅ Haan Bhai! Support Kar Raha Hoon!"):
+                st.markdown("[**Donate via UPI (Click to Pay)**](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
+                st.success("❤️ Thank you for your support! ❤️")
+        with col2:
+            if st.button("❌ Nahi Bhai, Abhi Paisa Nahi Hai"):
+                st.warning("Koi nahi! Aage kabhi support kar dena! 😊")
+
+st.markdown("---")
+st.header("💖 Support the Developer")
+st.markdown(
+    "Toh doston, chinta mat karo, **life ka UPI PIN strong rakho, relationships ka OTP safe rakho, aur success ka QR Code scan karne ki koshish karte raho!** 😆🔥\n\n"
+)
+st.image("qrcode.jpg", caption="Scan to Donate via UPI", width=150)
+st.write("[Donate via UPI (Click to Pay)](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
+st.write("Developed by Ankit Shrivastava")
