@@ -19,23 +19,24 @@ def download_media(url, quality, platform):
     options = {
         'format': format_map.get(quality, 'best'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
-        'nocheckcertificate': True,  # Avoid SSL issues
+        'nocheckcertificate': True,
         'http_headers': {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
             'Accept-Language': 'en-US,en;q=0.9'
         }
     }
     
-    # Instagram Reels Handling (Use Cookies if needed)
+    # Instagram reels ke liye login cookies ka support
     if platform == "Instagram Reels":
-        options['cookies'] = 'cookies.txt'  # Add cookies support for private accounts
-    
+        options['cookies'] = 'cookies.txt'  # Instagram ke login session ka cookies file
+
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
             absolute_path = os.path.abspath(file_path)
             
+            # Check if file exists
             if os.path.exists(absolute_path):
                 return absolute_path
             else:
@@ -75,3 +76,10 @@ if st.button("Download"):
                 st.error("⚠️ Download failed. Please try again!")
     else:
         st.warning("Please enter a valid URL.")
+
+st.markdown("---")
+st.header("💖 Support the Developer")
+st.image("qrcode.jpg", caption="Scan to Donate via UPI", width=100)
+st.write("[Donate via UPI (Click to Pay)](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
+
+st.write("Developed by Ankit Shrivastava")
