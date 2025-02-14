@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import streamlit as st
 import yt_dlp
 import os
@@ -24,27 +23,34 @@ def download_media(url, quality, platform, media_type):
     }
 
     options = {
-        'format': format_map.get(quality, 'bestvideo+bestaudio/best'),
+        'format': format_map.get(quality, 'best'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
-        'noplaylist': True,  # Sirf ek hi video download hogi, playlist nahi
+        'noplaylist': True,  
         'postprocessors': [{
-            'key': 'FFmpegVideoConvertor',
-            'preferredformat': 'mp4',  # Fix: preferedformat -> preferredformat
+            'key': 'FFmpegVideoRemuxer',
+            'preferredformat': 'mp4',  
         }],
-        'retries': 10,  # Agar download fail ho toh 10 baar retry karega
+        'retries': 10,  
         'fragment_retries': 10,
         'socket_timeout': 30,
-        'nopart': False,  # Agar ek part fail ho toh poora video fail na ho
+        'nopart': False,  
     }
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
-            st.write(f"Generated file path: {file_path}")  # Debugging output
+            
+            # Agar file path valid nahi, toh default path use karein
+            if not file_path or not os.path.exists(file_path):
+                file_path = f"downloads/{info['title']}.mp4"
+
+            st.write(f"Generated file path: {file_path}")  
             return file_path if os.path.exists(file_path) else None
+
     except Exception as e:
-        return str(e)
+        st.error(f"Error: {e}")  
+        return None
 
 # Streamlit UI
 st.title("📥 Video & Audio Downloader")
@@ -62,7 +68,7 @@ url = st.text_input("Enter Video URL")
 
 if st.button("Download"):
     if st.session_state.download_completed:
-        st.success("\ud83c\udf89 Download already completed! Showing popup...")
+        st.success("🎉 Download already completed! Showing popup...")
     else:
         if url:
             with st.spinner("Downloading... Please wait."):
@@ -79,7 +85,7 @@ if st.button("Download"):
                     # Wait for a moment before showing popup
                     time.sleep(2)
                     
-                    st.success("\ud83c\udf89 Download Successful! Showing popup...")
+                    st.success("🎉 Download Successful! Showing popup...")
                 else:
                     st.error("Download failed. Please check the URL or try again.")
         else:
@@ -87,8 +93,8 @@ if st.button("Download"):
 
 # If download completed, show popup
 if st.session_state.download_completed:
-    with st.expander("\ud83c\udf89 Download Successful! Click to Support \ud83c\udf89", expanded=True):
-        st.markdown("## \ud83e\udd11 *Yaar! Ek Cup Chai Toh Banta Hai!* ☕")
+    with st.expander("🎉 Download Successful! Click to Support 🎉", expanded=True):
+        st.markdown("## 🤑 *Yaar! Ek Cup Chai Toh Banta Hai!* ☕")
         st.write("Yahhan, Dabate Hi Download Hota Hai")
 
         col1, col2 = st.columns(2)
