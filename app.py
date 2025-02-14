@@ -24,7 +24,6 @@ def download_media(url, quality, platform, media_type):
     options = {
         'format': format_map.get(quality, 'bestvideo+bestaudio/best'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
-        'merge_output_format': 'mp4',
         'noplaylist': True,  # Sirf ek hi video download hogi, playlist nahi
         'postprocessors': [{
             'key': 'FFmpegVideoConvertor',
@@ -40,12 +39,13 @@ def download_media(url, quality, platform, media_type):
         with yt_dlp.YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
+            st.write(f"Generated file path: {file_path}")  # Debugging output
             return file_path if os.path.exists(file_path) else None
     except Exception as e:
         return str(e)
 
 # Streamlit UI
-st.title("📥 Video & Audio Downloader")
+st.title("\ud83d\udcbd Video & Audio Downloader")
 st.write("Paste the video URL below and click 'Download'")
 
 platform = st.selectbox("Select Platform", ["YouTube Video", "Instagram Reels", "Facebook Reels"])
@@ -60,7 +60,7 @@ url = st.text_input("Enter Video URL")
 
 if st.button("Download"):
     if st.session_state.download_completed:
-        st.success("🎉 Download already completed! Showing popup...")
+        st.success("\ud83c\udf89 Download already completed! Showing popup...")
     else:
         if url:
             with st.spinner("Downloading... Please wait."):
@@ -77,7 +77,7 @@ if st.button("Download"):
                     # Wait for a moment before showing popup
                     time.sleep(2)
                     
-                    st.success("🎉 Download Successful! Showing popup...")
+                    st.success("\ud83c\udf89 Download Successful! Showing popup...")
                 else:
                     st.error("Download failed. Please check the URL or try again.")
         else:
@@ -85,8 +85,8 @@ if st.button("Download"):
 
 # If download completed, show popup
 if st.session_state.download_completed:
-    with st.expander("🎉 Download Successful! Click to Support 🎉", expanded=True):
-        st.markdown("## 🤑 *Yaar! Ek Cup Chai Toh Banta Hai!* ☕")
+    with st.expander("\ud83c\udf89 Download Successful! Click to Support \ud83c\udf89", expanded=True):
+        st.markdown("## \ud83e\udd11 *Yaar! Ek Cup Chai Toh Banta Hai!* ☕")
         st.write("Yahhan, Dabate Hi Download Hota Hai")
 
         col1, col2 = st.columns(2)
