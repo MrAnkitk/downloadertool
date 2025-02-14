@@ -21,15 +21,19 @@ def download_media(url, quality, platform, media_type):
         "Audio Only": "bestaudio/best"
     }
     
-    options = {
-        'format': format_map.get(quality, 'best'),
+      options = {
+        'format': format_map.get(quality, 'bestvideo+bestaudio/best'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
-        'noplaylist': True,  # Ensure only a single video is downloaded
-        'merge_output_format': 'mp4',  # Ensuring correct format
-        'quiet': False,
-        'retries': 10,  # Increase retries for long videos
-        'fragment_retries': 10,  # Retries for video segments
-        'socket_timeout': 30  # Increase timeout to avoid connection issues
+        'merge_output_format': 'mp4',
+        'noplaylist': True,  # Sirf ek hi video download hogi, playlist nahi
+        'postprocessors': [{
+            'key': 'FFmpegVideoConvertor',
+            'preferedformat': 'mp4',
+        }],
+        'retries': 10,  # Agar download fail ho toh 10 baar retry karega
+        'fragment_retries': 10,
+        'socket_timeout': 30,
+        'nopart': False,  # Agar ek part fail ho toh poora video fail na ho
     }
     
     try:
