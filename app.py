@@ -5,13 +5,7 @@ import os
 # Ensure downloads directory exists
 os.makedirs("downloads", exist_ok=True)
 
-# Session state to track downloads
-if "download_completed" not in st.session_state:
-    st.session_state.download_completed = False
-if "download_path" not in st.session_state:
-    st.session_state.download_path = None
-
-def download_media(url, quality, platform, media_type):
+def download_media(url, quality):
     format_map = {
         "1080p": "bestvideo[height<=1080]+bestaudio/best",
         "720p": "bestvideo[height<=720]+bestaudio/best",
@@ -25,30 +19,30 @@ def download_media(url, quality, platform, media_type):
     options = {
         'format': format_map.get(quality, 'best'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
-        'merge_output_format': 'mp4' if media_type == "Video" else 'mp3'
     }
-    
-    # Additional options for Instagram Reels
-    if platform == "Instagram Reels":
-        options['postprocessors'] = [{
-            'key': 'FFmpegVideoConvertor',
-            'preferedformat': 'mp4',
-        }]
     
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
             absolute_path = os.path.abspath(file_path)
-            return absolute_path
+            
+            # Check if file exists
+            if os.path.exists(absolute_path):
+                return absolute_path
+            else:
+                st.error("⚠️ Error: File was not saved correctly. Try again!")
+                return None
     except Exception as e:
+        st.error(f"⚠️ Download Failed: {str(e)}")
         return None
 
 st.title("📥 Video & Audio Downloader")
 st.write("Paste the video URL below and click 'Download'")
 
-platform = st.selectbox("Select Platform", ["YouTube Video", "YouTube Shorts", "Instagram Reels"])
+platform = st.selectbox("Select Platform", ["YouTube Video", "Instagram Reels", "YouTube Shorts"])
 media_type = st.radio("Select Media Type", ["Video", "Audio Only"])
+
 quality_options = ["1080p", "720p", "480p", "360p", "240p", "144p"]
 if media_type == "Audio Only":
     quality_options = ["Audio Only"]
@@ -59,28 +53,17 @@ url = st.text_input("Enter Video URL")
 if st.button("Download"):
     if url:
         with st.spinner("Downloading... Please wait."):
-            file_path = download_media(url, quality, platform, media_type)
-            if file_path and os.path.exists(file_path):
-                st.session_state.download_path = file_path
-                st.session_state.download_completed = True
-                st.success("✅ Download Successful! Click below to save the file.")
+            file_path = download_media(url, quality)
+            if file_path:
+                with open(file_path, "rb") as file:
+                    st.download_button(
+                        label="📥 Click to Download",
+                        data=file,
+                        file_name=os.path.basename(file_path),
+                        mime="application/octet-stream"
+                    )
+                    st.success("✅ Download Successful!")
             else:
-                st.error("⚠️ Error: File not found. Please try again.")
+                st.error("⚠️ Download failed. Please try again!")
     else:
         st.warning("Please enter a valid URL.")
-
-# Show Download Button only if file exists
-if st.session_state.download_completed and st.session_state.download_path:
-    with open(st.session_state.download_path, "rb") as file:
-        st.download_button(
-            label="📥 Click to Download",
-            data=file,
-            file_name=os.path.basename(st.session_state.download_path),
-            mime="application/octet-stream"
-        )
-
-st.markdown("---")
-st.header("💖 Support the Developer")
-st.image("qrcode.jpg", caption="Scan to Donate via UPI", width=100)
-st.write("[Donate via UPI (Click to Pay)](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
-st.write("Developed by Ankit Shrivastava")
