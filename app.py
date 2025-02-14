@@ -37,7 +37,7 @@ def download_media(url, quality, platform, media_type):
     except Exception as e:
         return None
 
-st.title("📥 Video & Audio Downloader")
+st.title("\ud83d\udce5 Video & Audio Downloader")
 st.write("Paste the video URL below and click 'Download'")
 
 platform = st.selectbox("Select Platform", ["YouTube Video", "Instagram Reels"])
@@ -56,9 +56,9 @@ if st.button("Download"):
             if file_path and os.path.exists(file_path):
                 st.session_state.download_path = file_path
                 st.session_state.download_completed = True
-                st.success("✅ Download Successful! Click below to save the file.")
+                st.success("\u2705 Download Successful! Click below to save the file.")
             else:
-                st.error("⚠️ Error: File not found. Please try again.")
+                st.error("\u26a0\ufe0f Error: File not found. Please try again.")
     else:
         st.warning("Please enter a valid URL.")
 
@@ -66,8 +66,35 @@ if st.button("Download"):
 if st.session_state.download_completed and st.session_state.download_path:
     with open(st.session_state.download_path, "rb") as file:
         st.download_button(
-            label="📥 Click to Download",
+            label="\ud83d\udce5 Click to Download",
             data=file,
             file_name=os.path.basename(st.session_state.download_path),
             mime="application/octet-stream"
         )
+
+# If download completed, show popup
+if st.session_state.download_completed:
+    with st.expander("\ud83c\udf89 Download Successful! Click to Support \ud83c\udf89", expanded=True):
+        st.markdown("## \ud83e\udd11 *Yaar! Ek Cup Chai Toh Banta Hai!* ☕")
+        st.write("Yahhan, Dabate Hi Download Hota Hai")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("\u2705 Haan Bhai! Support Kar Raha Hoon!"):
+                st.markdown("[**Donate via UPI (Click to Pay)**](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
+                st.success("❤️ Thank you for your support! ❤️")
+
+        with col2:
+            if st.button("\u274c Nahi Bhai, Abhi Paisa Nahi Hai"):
+                st.warning("Koi nahi! Aage kabhi support kar dena! 😊")
+
+st.markdown("---")
+st.header("💖 Support the Developer")
+
+st.markdown(
+    "Toh doston, chinta mat karo, **life ka UPI PIN strong rakho, relationships ka OTP safe rakho, aur success ka QR Code scan karne ki koshish karte raho!** 😆🔥\n\n"
+)
+st.image("qrcode.jpg", caption="Scan to Donate via UPI", width=100)
+st.write("[Donate via UPI (Click to Pay)](upi://pay?pa=ankle643@sbi&pn=Ankit%20Kumar&mc=0000&tid=9876543210&tr=BCR2DN4T&tn=Thanks%20for%20supporting!)")
+
+st.write("Developed by Ankit Shrivastava")
