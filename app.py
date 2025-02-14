@@ -24,6 +24,12 @@ def download_media(url, quality, platform, media_type):
     options = {
         'format': format_map.get(quality, 'best'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
+        'noplaylist': True,  # Ensure only a single video is downloaded
+        'merge_output_format': 'mp4',  # Ensuring correct format
+        'quiet': False,
+        'retries': 10,  # Increase retries for long videos
+        'fragment_retries': 10,  # Retries for video segments
+        'socket_timeout': 30  # Increase timeout to avoid connection issues
     }
     
     try:
