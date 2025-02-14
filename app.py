@@ -29,6 +29,7 @@ def download_media(url, quality, platform, media_type):
         'format': format_map.get(quality, 'best[ext=mp4]'),
         'outtmpl': 'downloads/%(title)s.%(ext)s',
         'postprocessors': [],  # Disable ffmpeg usage
+        'verbose': True,  # Debug mode
         **extra_args
     }
 
@@ -42,6 +43,7 @@ def download_media(url, quality, platform, media_type):
             else:
                 return None
     except Exception as e:
+        print("⛔ ERROR:", str(e))  # Print error in terminal
         return str(e)
 
 st.title("📥 Video & Audio Downloader")
