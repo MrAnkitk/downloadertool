@@ -32,7 +32,6 @@ def download_media(url, quality, platform, media_type):
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
             
-            # File check
             if os.path.exists(file_path):
                 return file_path
             else:
