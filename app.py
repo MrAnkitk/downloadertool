@@ -13,21 +13,18 @@ def download_media(url, quality, platform, media_type):
         "360p": "bestvideo[height<=360]+bestaudio/best",
         "240p": "bestvideo[height<=240]+bestaudio/best",
         "144p": "bestvideo[height<=144]+bestaudio/best",
-        "Audio Only": "bestaudio/best"  # Audio Only
+        "Audio Only": "bestaudio/best"
     }
     
-    extra_args = {}
+    # Instagram ke liye best available format select karein
     if platform == "Instagram Reels":
-        extra_args = {
-            'referer': 'https://www.instagram.com/',
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-            'extractor_args': {'instagram': ''}
-        }
+        format_choice = "best"  # Automatically selects the best single file format
+    else:
+        format_choice = format_map.get(quality, 'best')
 
     options = {
-        'format': format_map.get(quality, 'best'),
+        'format': format_choice,
         'outtmpl': 'downloads/%(title)s.%(ext)s',
-        **extra_args
     }
 
     try:
@@ -35,6 +32,7 @@ def download_media(url, quality, platform, media_type):
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
             
+            # File check
             if os.path.exists(file_path):
                 return file_path
             else:
