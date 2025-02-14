@@ -5,7 +5,7 @@ import os
 # Ensure downloads directory exists
 os.makedirs("downloads", exist_ok=True)
 
-def download_media(url, quality):
+def download_media(url, quality, platform, media_type):
     format_map = {
         "1080p": "bestvideo[height<=1080]+bestaudio/best",
         "720p": "bestvideo[height<=720]+bestaudio/best",
@@ -13,7 +13,7 @@ def download_media(url, quality):
         "360p": "bestvideo[height<=360]+bestaudio/best",
         "240p": "bestvideo[height<=240]+bestaudio/best",
         "144p": "bestvideo[height<=144]+bestaudio/best",
-        "Audio Only": "bestaudio/best"
+        "Audio Only": "bestaudio/best" # Audio Only
     }
     
     options = {
@@ -25,7 +25,9 @@ def download_media(url, quality):
         with yt_dlp.YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(info)
-            absolute_path = os.path.abspath(file_path)
+            return file_path
+    except Exception as e:
+            return str(e)
             
             # Check if file exists
             if os.path.exists(absolute_path):
